@@ -11,16 +11,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import vn.mog.payment.merchant.payment.onepay.OnePayPayment;
+import vn.mog.payment.merchant.payment.onepay.ResponseTransaction;
 
 @Controller
 public class PaymentController {
 
 	@RequestMapping(value = "/pay", method = RequestMethod.POST)
-	@ResponseBody
-	public String pay(@RequestParam(value = "country", defaultValue = "VN") String country,
+	public @ResponseBody ResponseTransaction pay(@RequestParam(value = "country", defaultValue = "VN") String country,
 			@RequestParam(value = "amount") double amount,
 			@RequestParam(value = "content") String content,
-			@RequestParam(value = "country", defaultValue = "en") String language){
+			@RequestParam(value = "language", defaultValue = "en") String language){
 		
 		String request_id = UUID.randomUUID().toString().replace("-", "");
 		// TODO Merchant save transaction
@@ -28,14 +28,15 @@ public class PaymentController {
 		// Send request to 1Pay
 		String url = OnePayPayment.createRequestUrl(country, request_id, String.valueOf(amount), content, language);
 		
-		ResponseEntity<String> response = OnePayPayment.restTemplate.postForEntity(url, null, String.class);
+		// ResponseEntity<String> response = OnePayPayment.restTemplate.postForEntity(url, null, String.class);
+		ResponseTransaction response = OnePayPayment.restTemplate.postForObject(url, null, ResponseTransaction.class);
 		
-		// TODO Update transaction
+		// TODO Merchant Update transaction
 		
-		System.out.println("response: " + response);
-		// Display screen to choose payment method
+		System.out.println("response: " + response.getTransaction());
 		
-		return response.getBody();
+		// Display screen to User choose payment method
+		return response;
 	}
 	
 	@RequestMapping(value = "/receiveNotify", method = RequestMethod.POST)

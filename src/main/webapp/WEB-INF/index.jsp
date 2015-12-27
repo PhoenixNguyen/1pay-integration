@@ -17,11 +17,14 @@
   	function buy(obj) {
   		var content = obj.getAttribute("content");
   		var amount = obj.getAttribute("amount");
+  		var country = '<%=(request.getParameter("country") == null ? "" : request.getParameter("country"))%>';
   		$.ajax({
   			type: 'POST',
   		    url: 'http://localhost:8081/pay',
-  		    data : 'content='+content+'&amount='+amount,
+  		    data : 'content='+content+'&amount='+amount+"&country="+country,
+  		  	dataType: 'json',
   		    success: function(result){
+  		    	console.log(result);
   		    	renderForm(result);
   		    }
   		});
@@ -31,7 +34,20 @@
 <body>
 
 <div class="container">
-  <h2>List Group With Linked Items</h2>
+  <br/>
+  <div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+    <% if("VN".equals(request.getParameter("country"))){ out.write("Việt Nam"); } else {%> 
+    <% if("ID".equals(request.getParameter("country"))) { out.write("Indo");} else {%> 
+    <% out.write("Chọn thị trường"); }}%> 
+    <span class="caret"></span></button>
+    <ul class="dropdown-menu">
+      <li><a href="<%=request.getContextPath()%>?country=VN">Việt Nam</a></li>
+      <li><a href="<%=request.getContextPath()%>?country=ID">Indo</a></li>
+    </ul>
+  </div>
+  
+  <h2>Danh sách sản phẩm</h2>
   <div class="list-group">
 	  <a href="#" onclick="buy(this); return false;" class="list-group-item active firstItem" content="First item" amount="1000" data-toggle="modal" data-target="#myModal">First item, 1000 IDR</a>
 	  <a href="#" onclick="buy(this); return false;" class="list-group-item secondItem" content="Second item" amount="2000" data-toggle="modal" data-target="#myModal">Second item, 2000 IDR</a>
@@ -63,7 +79,7 @@
 
 <script type="text/javascript">
 function renderForm(responseText){
-	var response = JSON.parse(responseText);
+	var response = responseText; //JSON.parse(responseText);
 	//if(response["code"]==0){
 	//	alert('completed')
 	//} else {
@@ -155,7 +171,7 @@ function renderForm(responseText){
 			        url: $(this).attr('action'),
 			        data: $(this).serialize(),
 			        success: function(result){
-			        	console.log(result);
+			        	//console.log(result);
 				    	renderForm(result);
 				    },
 				    failure: function(response, opts) {
