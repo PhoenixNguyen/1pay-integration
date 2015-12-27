@@ -22,7 +22,7 @@
   		    url: 'http://localhost:8081/pay',
   		    data : 'content='+content+'&amount='+amount,
   		    success: function(result){
-  		    	console.log(result);
+  		    	renderForm(result);
   		    }
   		});
   	}
@@ -33,11 +33,142 @@
 <div class="container">
   <h2>List Group With Linked Items</h2>
   <div class="list-group">
-	  <a href="#" onclick="buy(this); return false;" class="list-group-item active firstItem" content="First item" amount="1000">First item, 1000 IDR</a>
-	  <a href="#" onclick="buy(this); return false;" class="list-group-item secondItem" content="Second item" amount="2000">Second item, 2000 IDR</a>
-	  <a href="#" onclick="buy(this); return false;" class="list-group-item thirdItem" content="Third item" amount="3000">Third item, 3000 IDR</a>
+	  <a href="#" onclick="buy(this); return false;" class="list-group-item active firstItem" content="First item" amount="1000" data-toggle="modal" data-target="#myModal">First item, 1000 IDR</a>
+	  <a href="#" onclick="buy(this); return false;" class="list-group-item secondItem" content="Second item" amount="2000" data-toggle="modal" data-target="#myModal">Second item, 2000 IDR</a>
+	  <a href="#" onclick="buy(this); return false;" class="list-group-item thirdItem" content="Third item" amount="3000" data-toggle="modal" data-target="#myModal">Third item, 3000 IDR</a>
+  </div>
+  
+  
+  <!-- Modal -->
+  <div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Chọn phương thức thanh toán</h4>
+        </div>
+        <div class="modal-body">
+          <p id="paymentMethodContent">...</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      
+    </div>
   </div>
 </div>
 
+<script type="text/javascript">
+function renderForm(responseText){
+	var response = JSON.parse(responseText);
+	//if(response["code"]==0){
+	//	alert('completed')
+	//} else {
+	{
+		if(response.checkoutUrl){
+			window.location= response.checkoutUrl;
+		} else {
+			var groupsElement = document.getElementById('paymentMethodContent');
+			//Clear UI
+			groupsElement.innerHTML = "";
+			var groups = response.groups;
+			for(var i = 0;i<groups.length;i++){
+				var group = groups[i];
+				var form = document.createElement('FORM');
+				form.action = group["target"];
+				form.method = "POST";
+				var fieldset = document.createElement("fieldset");
+				var legend = document.createElement('legend');
+				legend.appendChild(document.createTextNode(group["label"]));
+				fieldset.appendChild(legend);
+				
+				/*
+					add hidden transation field
+				*/
+				var input = document.createElement('input');
+				input.type = 'hidden';
+				input.name="transaction";
+				input.value = response["transaction"];
+				fieldset.appendChild(input);
+				
+				var params=group.params;
+				if(params!=null){
+					for(var j = 0;j<params.length;j++){
+						var param = params[j];
+						var type = param["type"];
+						if(type=="number" || type == "text"||type=='email'){
+							var input = document.createElement('input');
+							input.type = type;
+							input.placeholder = param["label"];
+							input.name = param["name"];
+							fieldset.appendChild(input);
+							fieldset.appendChild(document.createElement('br'));
+						} else if(type=='submit'){
+							var input = document.createElement('input');
+							input.type = 'submit';
+							input.value = param["label"];
+							input.name = param["name"];
+							fieldset.appendChild(input);
+							fieldset.appendChild(document.createElement('br'));
+						} else if(type=='select'){
+							fieldset.appendChild(document.createTextNode(param["label"]));
+							fieldset.appendChild(document.createElement('br'));
+							
+							var select = document.createElement('select');
+							select.name = param["name"];
+							var options = param["options"];
+							for(var k = 0;k<options.length;k++){
+								var option = options[k];
+								var optionElement = document.createElement('option');
+								optionElement.value = option["value"];
+								optionElement.appendChild(document.createTextNode(option["label"]))
+								select.appendChild(optionElement)
+							}
+							fieldset.appendChild(select);
+							fieldset.appendChild(document.createElement('br'));
+						} else if(type=='link'){
+							var anchor = document.createElement('a');
+							anchor.href = option["name"];
+							anchor.target="_blank";
+							anchor.appendChild(document.createTextNode(option["label"]))
+							fieldset.appendChild(anchor);
+							fieldset.appendChild(document.createElement('br'));
+						} else {
+							var msg = document.createElement('div');
+							msg.appendChild(document.createTextNode(option["label"]))
+							fieldset.appendChild(msg);
+						}
+					}
+				}
+				form.appendChild(fieldset);
+				groupsElement.appendChild(form);
+				
+			}
+			$('#paymentMethodContent form').submit(function(event) {
+			    event.preventDefault();
+			    console.log($(this).serialize());
+			    $.ajax({
+			        type: 'POST',
+			        url: $(this).attr('action'),
+			        data: $(this).serialize(),
+			        success: function(result){
+			        	console.log(result);
+				    	renderForm(result);
+				    },
+				    failure: function(response, opts) {
+				    	console.log("failure " + response);
+				    }
+			    })/* .done(renderForm).fail(function(data) {
+			    	alert(data.responseText);
+			    }) */;
+			});
+		}
+		//document.getElementById("debug").innerHTML = responseText;
+	}
+}
+</script>
 </body>
 </html>

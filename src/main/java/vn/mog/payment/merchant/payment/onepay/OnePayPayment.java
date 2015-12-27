@@ -1,4 +1,4 @@
-package vn.mog.payment.merchant.payment;
+package vn.mog.payment.merchant.payment.onepay;
 
 import org.springframework.web.client.RestTemplate;
 
