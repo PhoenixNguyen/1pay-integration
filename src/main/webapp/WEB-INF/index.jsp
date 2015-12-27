@@ -20,7 +20,7 @@
   		var country = '<%=(request.getParameter("country") == null ? "" : request.getParameter("country"))%>';
   		$.ajax({
   			type: 'POST',
-  		    url: 'http://localhost:8081/pay',
+  		    url: '<%=request.getContextPath()%>/pay',
   		    data : 'content='+content+'&amount='+amount+"&country="+country,
   		  	dataType: 'json',
   		    success: function(result){
@@ -80,6 +80,7 @@
 <script type="text/javascript">
 function renderForm(responseText){
 	var response = responseText; //JSON.parse(responseText);
+	console.log(response);
 	//if(response["code"]==0){
 	//	alert('completed')
 	//} else {
@@ -170,6 +171,7 @@ function renderForm(responseText){
 			        type: 'POST',
 			        url: $(this).attr('action'),
 			        data: $(this).serialize(),
+			        dataType: 'json',
 			        success: function(result){
 			        	//console.log(result);
 				    	renderForm(result);

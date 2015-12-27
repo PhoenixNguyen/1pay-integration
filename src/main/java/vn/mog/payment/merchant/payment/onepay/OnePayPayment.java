@@ -4,7 +4,7 @@ import org.springframework.web.client.RestTemplate;
 
 public class OnePayPayment {
 	// URL checkout của 1Pay.vn
-	public static String ONE_PAY_URL = "http://127.0.0.1:8080/api/v2/checkout";
+	public static String ONE_PAY_URL = "http://gateway.1pay.vn/api/v2/checkout";
 	
 	// Merchant ID
 	public static String MERCHANT_ID = "";
